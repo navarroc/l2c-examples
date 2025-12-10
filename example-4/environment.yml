@@ -1,0 +1,9 @@
+name: l2c-example-4
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - cuda-version=11.8
+  - cudatoolkit=11.8.0
+  - numpy>=1.26.4
+  - tensorflow>=2.14.0
