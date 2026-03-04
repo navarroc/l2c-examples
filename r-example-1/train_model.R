@@ -1,5 +1,7 @@
 # Install caret if you haven't: install.packages("caret")
 library(caret)
+# Install randomForest
+library(randomForest)
 
 # Load the built-in dataset
 data(iris)
