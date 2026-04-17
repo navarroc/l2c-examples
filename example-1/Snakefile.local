@@ -1,0 +1,9 @@
+rule run_container:
+    output:
+        "output/stdout.txt"
+    singularity:
+        "l2c-example-1_latest.sif"
+    shell:
+        """
+        ./run_tool.sh > {output}
+        """
