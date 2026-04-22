@@ -20,6 +20,14 @@ add some bindings when you run Snakemake. Here is an example for running with SL
 snakemake --executor slurm --use-singularity --singularity-args "--cwd /app --bind $(pwd)/output:/app/output" --jobs 1
 ```
 
+If you want to pass in parameters, use the following:
+
+```
+snakemake --executor slurm --latency-wait 60 --use-singularity --singularity-args "--cwd /app --bind $(pwd)/output:/app/output" --jobs 1 --config model_mode="eval" content_image="--content-image images/content-images/amber.jpg" model="--model saved_models/mosaic.pth" output_image="--output-image /app/output/output-normal2.jpg"
+```
+
+You can use the config parameter to change inputs/outputs when executing the workflow.
+
 If you are running locally, you can use the following:
 
 ```
