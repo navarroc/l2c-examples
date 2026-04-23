@@ -11,7 +11,8 @@ intended only as examples and could be configured more than they are. They provi
 a bare minimum setup to run with Slurm or Locally.
 
 See [Snakefile.local](Snakefile.local) for local execution or [Snakefile.slurm](Snakefile.slurm)
-for an example with SLURM.
+for an example with SLURM. There is also a [Snakefile.docker](Snakefile.docker) example
+for how you can reference a Docker container, which will get converted to SIF by apptainer.
 
 If you are using this with the Docker containers built using the laptop-to-hpc scripts, you will need to 
 add some bindings when you run Snakemake. Here is an example for running with SLURM:
