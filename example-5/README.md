@@ -8,7 +8,7 @@ docker run -v outputs:/app/outputs -it l2c/example-5 eval --content-image images
 
 To see how you can run this with Snakemake, see the example Snakefiles. These are
 intended only as examples and could be configured more than they are. They provide
-a bare minimum setup to run with Slurm or Locally.
+a bare minimum setup to run with Slurm or locally.
 
 See [Snakefile.local](Snakefile.local) for local execution or [Snakefile.slurm](Snakefile.slurm)
 for an example with SLURM. There is also a [Snakefile.docker](Snakefile.docker) example
