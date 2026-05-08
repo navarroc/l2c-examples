@@ -6,7 +6,7 @@ This is a python example that can be containerized with the laptop-to-hpc script
 
 To see how you can run this with Snakemake, see the example Snakefiles. These are
 intended only as examples and could be configured more than they are. They provide
-a bare minimum setup to run with Slurm or locally.
+a bare minimum setup to run with SLURM or locally.
 
 See [Snakefile.local](Snakefile.local) for local execution or [Snakefile.slurm](Snakefile.slurm)
 for an example with SLURM. There is also a [Snakefile.docker](Snakefile.docker) example
@@ -23,3 +23,21 @@ If you are running locally, you can use the following:
 
 ```
 snakemake --use-singularity --singularity-args "--cwd /app --bind $(pwd)/output:/app/output" -j1
+
+## Nextflow
+
+To see how you can run this with Nextflow, see the example main.nf and nextflow.config. These
+are only intended as examples and could be configured in different ways. The provide a bare
+minimum setup to run with SLURM. 
+
+You can run this with SLURM using the 'slurm' profile. Otherwise, it defaults to local execution.
+
+To run this locally, do the following:
+
+```
+nextflow run main.nf
+```
+
+To run this with a SLURM scheduler, do the following:
+
+nextflow run main.nf -profile slurm
