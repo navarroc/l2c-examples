@@ -23,6 +23,30 @@ If you are running locally, you can use the following:
 
 ```
 snakemake --use-singularity --singularity-args "--cwd /app --bind $(pwd)/output:/app/output" -j1
+```
+
+For a slightly more complex example, here is an Snakefile for a 2-step workflow that uses example-1 and 
+example-5. See [Snakefile.2step](Snakefile.2step)
+
+Finally, here is an example for running Snakemake on a compute node:
+
+```
+#!/bin/bash
+#SBATCH --partition=some-partition
+#SBATCH --account=some-account
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=4G
+#SBATCH --time=00:05:00  # Adjust based on expected workflow duration
+
+# Load your environment (conda, modules, etc.)
+# module load snakemake  # Example
+module load python/3.11.11
+source /path/to/snakemake/myenv/bin/activate
+
+snakemake --executor slurm --latency-wait 60 --use-singularity --singularity-args "--cwd /app --bind $(pwd)/output:/app/output" --jobs 1
+```
 
 ## Nextflow
 
