@@ -1,0 +1,34 @@
+params.input = "images/content-images/amber.jpg"
+params.output_name = "output-normal2.jpg"
+
+
+process RUN_CONTAINER {
+    container 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-5:amd64'
+    containerOptions '--workdir /app'
+
+    cpus 1
+    memory '4 GB'
+    time '5m'
+
+    input:
+    path user_image
+
+    script:
+    """
+    orig_dir=\$PWD
+    echo ${user_image}
+    #cd /app && ./run_tool.sh eval --content-image "\$orig_dir/${user_image}" --model saved_models/mosaic.pth --output-image "\$orig_dir/${params.output_name}"
+    """
+}
+
+workflow {
+    println("*****************************************************")
+    println "launchDir: ${launchDir}"
+    println "projectDir: ${projectDir}"
+    println "workDir: ${workDir}"
+    println("*****************************************************")
+
+    // This works if there is always a file input - does not allow null/empty
+    image_ch = Channel.fromPath(params.input, checkIfExists: true)
+    RUN_CONTAINER(image_ch)
+}

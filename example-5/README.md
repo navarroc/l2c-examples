@@ -51,4 +51,16 @@ nextflow run main.nf
 
 To run this with a SLURM scheduler, do the following:
 
+```
 nextflow run main.nf -profile slurm
+```
+
+For a more complex example, see main.nf.example-1 and main.nf.example-2. example-1 shows how can you pass in an input
+file so that it gets staged into the container for execution. The main drawback is you must always specify a file. 
+example-2 shows how you can optionally specify a file that gets staged in or you can use the default image that is in
+the container. For example, assuming you use main.nf.example-2 as your main.nf, you can specify an input file and the
+name of the output file by doing the following:
+
+```
+nextflow run main.nf -profile slurm --input 'amber.jpg' --output_name 'output-normal1.jpg'
+```

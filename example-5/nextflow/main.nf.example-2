@@ -1,0 +1,43 @@
+params.input = null
+params.output_name = "output-normal2.jpg"
+
+process RUN_CONTAINER {
+    container 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-5:amd64'
+    containerOptions '--workdir /app'
+    cpus 1
+    memory '4 GB'
+    time '5m'
+
+    input:
+    tuple val(use_default), path(user_image)
+
+    script:
+    def content_image = use_default ? "/images/content-images/amber.jpg" : "\$orig_dir/${user_image}"
+    """
+    orig_dir=\$PWD
+    echo "Using image: ${content_image}"
+    cd /app && ./run_tool.sh eval \
+        --content-image "${content_image}" \
+        --model saved_models/mosaic.pth \
+        --output-image "\$orig_dir/${params.output_name}"
+    """
+}
+
+workflow {
+    println("*****************************************************")
+    println "launchDir: ${launchDir}"
+    println "projectDir: ${projectDir}"
+    println "workDir: ${workDir}"
+    println("*****************************************************")
+
+    if (params.input) {
+        // Stage the file into the work directory, flag as not default
+        image_ch = Channel.fromPath(params.input, checkIfExists: true)
+                          .map { file -> tuple(false, file) }
+    } else {
+        // No file to stage; pass a dummy path and flag as default
+        image_ch = Channel.value(tuple(true, file("NO_FILE")))
+    }
+
+    RUN_CONTAINER(image_ch)
+}
