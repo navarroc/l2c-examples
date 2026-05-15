@@ -1,5 +1,4 @@
 process RUN_CONTAINER {
-    container 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64'
     containerOptions '--workdir /app'
 
     cpus 1
