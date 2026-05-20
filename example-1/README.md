@@ -124,3 +124,6 @@ module load java/23
 
 nextflow run main.nf -profile slurm
 ```
+
+For an example of a 2 step workflow using example-1 and example-5, see the main.nf.2step in the nextflow directory.
+
