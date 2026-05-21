@@ -2,15 +2,8 @@
 rule run_container:
     output:
         "output/stdout.txt"
-    singularity:
-        "l2c-example-1_latest.sif"
-    resources:
-        slurm_partition="IllinoisComputes",
-        runtime=5,
-        mem_mb=4000,
-        cpus_per_task=1,
-        slurm_account="ncsa-ic",
-        nodes=1
+    container: 
+        "docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64"
     shell:
         """
         ./run_tool.sh > {output}
