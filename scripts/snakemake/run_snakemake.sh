@@ -22,6 +22,7 @@ PROFILE={{ SLURM_PROFILE }}
 echo "Activate Snakemake"
 source ~/snakemake/myenv/bin/activate
 
+# TODO the singularity args could be made configurable
 snakemake --profile "$PROFILE" --singularity-args "--cwd /app --bind $(pwd)/output:/app/output" --jobs 1
 
 EOF
@@ -112,6 +113,7 @@ else
     echo "Run Snakemake on the login node"
     # This line might need to be tailored to your container depending how you built it
     # Right now it will only launch 1 job in parallel at a time
+    # TODO the singularity args could be made configurable
     snakemake --profile "$PROFILE" --singularity-args "--cwd /app --bind $(pwd)/output:/app/output" --jobs 1
 fi
 
