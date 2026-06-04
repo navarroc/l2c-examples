@@ -32,11 +32,16 @@ ACCOUNT_NAME="ncsa-ic"
 PARTITION="IllinoisComputes"
 HELP="NO"
 USE_SLURM="NO"
+# By default, don't remove the temporary files - users might want to see this to write their own
+CLEANUP="NO"
 
-while getopts "a:hp:s" opt; do
+while getopts "a:chp:s" opt; do
     case $opt in
         a)
             ACCOUNT_NAME="$OPTARG"
+        ;;
+        c)
+            CLEANUP="YES"
         ;;
         h)
             HELP="YES"
@@ -54,6 +59,7 @@ if [ "$HELP" == "YES" ]; then
     echo "Usage : $0 <-a Account Name > <-p Partition> [-h]"
     echo ""
     echo "-a account    : Account name to run job under "
+    echo "-c            : Clean up temporary files (e.g sbatch script)"
     echo "-h            : this help text"
     echo "-p partition  : partition requested for the job"
     exit 0
@@ -107,8 +113,6 @@ if [ "$USE_SLURM" == "YES" ]; then
     echo "Run Snakemake on a compute node"
     sbatch run_job.sh
     # TODO we should add a flag to not clean up the sbatch script in case it's needed for debugging
-    echo "Removing run_job.sh"
-    rm run_job.sh
 else
     echo "Run Snakemake on the login node"
     # This line might need to be tailored to your container depending how you built it
@@ -117,3 +121,7 @@ else
     snakemake --profile "$PROFILE" --singularity-args "--cwd /app --bind $(pwd)/output:/app/output" --jobs 1
 fi
 
+if [ "$CLEANUP" == "YES" ]; then
+  echo "Cleaning up temporary files"
+  rm run_job.sh
+fi
