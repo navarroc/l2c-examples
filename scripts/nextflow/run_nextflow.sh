@@ -44,34 +44,110 @@ profiles {
         }
     }
 
-    // SLURM profile
+    // -----------------------------------------------------------------------
+    // Campus Cluster (UIUC) — https://docs.ncsa.illinois.edu/systems/icc/
+    //
     slurm_ccluster {
         docker.enabled = false
         singularity.enabled = true
         process {
             executor = 'slurm'
             container = 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64'
-            clusterOptions = '--account=ncsa-ic --partition=IllinoisComputes --nodes=1'
+            clusterOptions = '--account={{ ACCOUNT }} --nodes=1'
+            queue = '{{ PARTITION }}'
+
+            // Resource labels — use `label` in your processes
+            withLabel: 'tiny' {
+                cpus   =  1
+                memory = 4.GB
+                time   = 5.m
+            }
+            withLabel: 'small' {
+                cpus   =  2
+                memory = 8.GB
+                time   = 30.m
+            }
+            withLabel: 'medium' {
+                cpus   =  4
+                memory = 16.GB
+                time   = 1.h
+            }
+            withLabel: 'large' {
+                cpus   =  8
+                memory = 32.GB
+                time   = 4.h
+            }
         }
     }
-    // todo - update account when system is online
+    // -----------------------------------------------------------------------
+    // NCSA Delta (UIUC) — https://docs.ncsa.illinois.edu/systems/delta/
+    //
     slurm_delta {
         docker.enabled = false
         singularity.enabled = true
         process {
             executor = 'slurm'
             container = 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64'
-            clusterOptions = '--account=bccu-delta-cpu --partition=cpu --nodes=1'
+            clusterOptions = '--account={{ ACCOUNT }} --nodes=1'
+            queue          = '{{ PARTITION }}'          // gpu, cpu, gpuA100x4, gpuA40x4
+
+            // Resource labels — use `label` in your processes
+            withLabel: 'tiny' {
+                cpus   =  1
+                memory = 4.GB
+                time   = 5.m
+            }
+            withLabel: 'small' {
+                cpus   =  2
+                memory = 8.GB
+                time   = 30.m
+            }
+            withLabel: 'medium' {
+                cpus   =  4
+                memory = 16.GB
+                time   = 1.h
+            }
+            withLabel: 'large' {
+                cpus   =  8
+                memory = 32.GB
+                time   = 4.h
+            }
         }
     }
-    // todo - update account when system is online
+    // -----------------------------------------------------------------------
+    // NCSA Delta AI (UIUC) — https://docs.ncsa.illinois.edu/systems/deltaai/
+    //
     slurm_delta_ai {
         docker.enabled = false
         singularity.enabled = true
         process {
             executor = 'slurm'
             container = 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:arm64'
-            clusterOptions = '--account= --partition= --nodes=1'
+            clusterOptions = '--account= {{ ACCOUNT }} --nodes=1 --gpus=1'
+            queue = '{{ PARTITION }}' // ghx4
+
+            // Resource labels — use `label` in your processes
+            // TODO - we could add a GPU profile that adds in GPUs
+            withLabel: 'tiny' {
+                cpus           = 1
+                memory         = 4.GB
+                time           = 5.m
+            }
+            withLabel: 'small' {
+                cpus           = 2
+                memory         = 8.GB
+                time           = 30.m
+            }
+            withLabel: 'medium' {
+                cpus           = 4
+                memory         = 16.GB
+                time           = 1.h
+            }
+            withLabel: 'large' {
+                cpus           = 8
+                memory         = 32.GB
+                time           = 4.h
+            }
         }
     }
 }
@@ -152,6 +228,11 @@ else
     mv nextflow ~/nextflow
 fi
 # TODO - create basic nextflow.config file that can be used for different campus
+echo "Creating nextflow config"
+config_template > nextflow.config
+sed  -i -e "s|{{ PARTITION }}|$PARTITION|g" \
+     -i -e "s|{{ ACCOUNT }}|$ACCOUNT_NAME|g" nextflow.config
+
 # systems, but container info must either be added to it or the main.nf should have it
 echo "Generate template sbatch file - nextflow_sbatch.sh"
 sbatch_template > nextflow_sbatch.sh
