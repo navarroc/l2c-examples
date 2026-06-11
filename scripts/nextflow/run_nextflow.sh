@@ -53,7 +53,7 @@ profiles {
         process {
             executor = 'slurm'
             container = 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64'
-            clusterOptions = '--account={{ ACCOUNT }} --nodes=1'
+            clusterOptions = '--account={{ ACCOUNT }} --nodes=1 {{ GPU_OPTION }}'
             queue = '{{ PARTITION }}'
 
             // Resource labels — use `label` in your processes
@@ -88,7 +88,7 @@ profiles {
         process {
             executor = 'slurm'
             container = 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64'
-            clusterOptions = '--account={{ ACCOUNT }} --nodes=1'
+            clusterOptions = '--account={{ ACCOUNT }} --nodes=1 {{ GPU_OPTION }}'
             queue          = '{{ PARTITION }}'          // gpu, cpu, gpuA100x4, gpuA40x4
 
             // Resource labels — use `label` in your processes
@@ -123,7 +123,7 @@ profiles {
         process {
             executor = 'slurm'
             container = 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:arm64'
-            clusterOptions = '--account= {{ ACCOUNT }} --nodes=1 --gpus=1'
+            clusterOptions = '--account= {{ ACCOUNT }} --nodes=1 {{ GPU_OPTION }}'
             queue = '{{ PARTITION }}' // ghx4
 
             // Resource labels — use `label` in your processes
@@ -155,15 +155,19 @@ EOF
 }
 
 # Potential future implementation - generate main.nf - this is highly configurable so not clear if it's worthwhile
-
-ACCOUNT_NAME="ncsa-ic"
-PARTITION="IllinoisComputes"
+# TODO - add JOB prefix to account/partition so it's clear
+ACCOUNT_NAME=""
+WORKFLOW_ACCOUNT_NAME=""
+WORKFLOW_PARTITION=""
+PARTITION=""
 HELP="NO"
 # By default, don't remove the temporary files - users might want to see this to write their own
 CLEANUP="NO"
 USE_SLURM="NO"
+NUM_GPUS=0
+# TODO - get workflow account and partition from environment or CLI - could be different
 
-while getopts "a:chp:s" opt; do
+while getopts "a:cg:hi:p:sw:" opt; do
     case $opt in
         a)
             ACCOUNT_NAME="$OPTARG"
@@ -171,8 +175,14 @@ while getopts "a:chp:s" opt; do
         c)
             CLEANUP="YES"
         ;;
+        g)
+            NUM_GPUS="$OPTARG"
+        ;;
         h)
             HELP="YES"
+        ;;
+        i)
+            WORKFLOW_PARTITION="$OPTARG"
         ;;
         p)
             PARTITION="$OPTARG"
@@ -180,18 +190,35 @@ while getopts "a:chp:s" opt; do
         s)
             USE_SLURM="YES"
         ;;
+        w)
+            WORKFLOW_ACCOUNT_NAME="$OPTARG"
+        ;;
     esac
 done
+
+# TODO - check if account or partition are empty for a job - exit in those case
 
 if [ "$HELP" == "YES" ]; then
     echo "Usage : $0 <-a Account Name > <-p Partition> [-h]"
     echo ""
     echo "-a account    : Account name to run job under "
     echo "-c            : Clean up temporary files (e.g sbatch script)"
+    echo "-g gpus       : number of gpus to request (default None)"
     echo "-h            : this help text"
+    echo "-i partition  : partition requested for the workflow"
     echo "-p partition  : partition requested for the job"
+    echo "-w account    : Account name to run workflow under "
     exit 0
 fi
+
+if [[ -z "$WORKFLOW_ACCOUNT_NAME" ]]; then
+  WORKFLOW_ACCOUNT_NAME=$ACCOUNT_NAME
+fi
+
+if [[ -z "$WORKFLOW_PARTITION" ]]; then
+  WORKFLOW_PARTITION=$PARTITION
+fi
+
 
 echo "Job will run with account $ACCOUNT_NAME and in partition $PARTITION"
 
@@ -229,15 +256,22 @@ else
 fi
 # TODO - create basic nextflow.config file that can be used for different campus
 echo "Creating nextflow config"
+
+# Check if using GPUS
+GPU_OPTION=""
+if [[ $NUM_GPUS -gt 0 ]]; then
+  GPU_OPTION="--gpus=${NUM_GPUS}"
+fi
 config_template > nextflow.config
 sed  -i -e "s|{{ PARTITION }}|$PARTITION|g" \
-     -i -e "s|{{ ACCOUNT }}|$ACCOUNT_NAME|g" nextflow.config
+     -i -e "s|{{ ACCOUNT }}|$ACCOUNT_NAME|g" \
+     -i -e "s|{{ GPU_OPTION }}|$GPU_OPTION|g" nextflow.config
 
 # systems, but container info must either be added to it or the main.nf should have it
 echo "Generate template sbatch file - nextflow_sbatch.sh"
 sbatch_template > nextflow_sbatch.sh
- sed -i -e "s|{{ PARTITION }}|$PARTITION|g" \
-     -i -e "s|{{ ACCOUNT }}|$ACCOUNT_NAME|g" \
+ sed -i -e "s|{{ PARTITION }}|$WORKFLOW_PARTITION|g" \
+     -i -e "s|{{ ACCOUNT }}|$WORKFLOW_ACCOUNT_NAME|g" \
      -i -e "s|{{ SLURM_PROFILE }}|$PROFILE|g" nextflow_sbatch.sh
 
 chmod +x nextflow_sbatch.sh
