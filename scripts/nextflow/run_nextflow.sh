@@ -18,7 +18,7 @@ cat <<'EOF'
 
 PROFILE={{ SLURM_PROFILE }}
 
-~/nextflow/nextflow run main.nf -resume -profile "$PROFILE"
+~/nextflow/nextflow run main.nf -resume -profile "$PROFILE" {{ IMAGE_CLI }}
 EOF
 }
 
@@ -155,11 +155,11 @@ EOF
 }
 
 # Potential future implementation - generate main.nf - this is highly configurable so not clear if it's worthwhile
-# TODO - add JOB prefix to account/partition so it's clear
-ACCOUNT_NAME=""
-WORKFLOW_ACCOUNT_NAME=""
+JOB_ACCOUNT=""
+JOB_PARTITION=""
+
+WORKFLOW_ACCOUNT=""
 WORKFLOW_PARTITION=""
-PARTITION=""
 HELP="NO"
 # By default, don't remove the temporary files - users might want to see this to write their own
 CLEANUP="NO"
@@ -170,7 +170,7 @@ NUM_GPUS=0
 while getopts "a:cg:hi:p:sw:" opt; do
     case $opt in
         a)
-            ACCOUNT_NAME="$OPTARG"
+            JOB_ACCOUNT="$OPTARG"
         ;;
         c)
             CLEANUP="YES"
@@ -185,18 +185,29 @@ while getopts "a:cg:hi:p:sw:" opt; do
             WORKFLOW_PARTITION="$OPTARG"
         ;;
         p)
-            PARTITION="$OPTARG"
+            JOB_PARTITION="$OPTARG"
         ;;
         s)
             USE_SLURM="YES"
         ;;
         w)
-            WORKFLOW_ACCOUNT_NAME="$OPTARG"
+            WORKFLOW_ACCOUNT="$OPTARG"
         ;;
     esac
 done
 
+# For now, we assume all other arguments are for the container
+shift $((OPTIND - 1))
+IMAGE_CLI="$@"
+
+echo "These are the arguments we'll pass to the workflow steps"
+echo $IMAGE_CLI
+
 # TODO - check if account or partition are empty for a job - exit in those case
+if [[ $JOB_ACCOUNT == "" || $JOB_PARTITION == "" ]]; then
+    echo "Error - you must specify both an account and partition to run under."
+    HELP="YES"
+fi
 
 if [ "$HELP" == "YES" ]; then
     echo "Usage : $0 <-a Account Name > <-p Partition> [-h]"
@@ -211,16 +222,16 @@ if [ "$HELP" == "YES" ]; then
     exit 0
 fi
 
-if [[ -z "$WORKFLOW_ACCOUNT_NAME" ]]; then
-  WORKFLOW_ACCOUNT_NAME=$ACCOUNT_NAME
+if [[ -z "$WORKFLOW_ACCOUNT" ]]; then
+  WORKFLOW_ACCOUNT=$JOB_ACCOUNT
 fi
 
 if [[ -z "$WORKFLOW_PARTITION" ]]; then
-  WORKFLOW_PARTITION=$PARTITION
+  WORKFLOW_PARTITION=$JOB_PARTITION
 fi
 
 
-echo "Job will run with account $ACCOUNT_NAME and in partition $PARTITION"
+echo "Job will run with account $JOB_ACCOUNT and in partition $JOB_PARTITION"
 
 # TODO add local profile execution option for running on a users laptop
 
@@ -263,16 +274,18 @@ if [[ $NUM_GPUS -gt 0 ]]; then
   GPU_OPTION="--gpus=${NUM_GPUS}"
 fi
 config_template > nextflow.config
-sed  -i -e "s|{{ PARTITION }}|$PARTITION|g" \
-     -i -e "s|{{ ACCOUNT }}|$ACCOUNT_NAME|g" \
+sed  -i -e "s|{{ PARTITION }}|$JOB_PARTITION|g" \
+     -i -e "s|{{ ACCOUNT }}|$JOB_ACCOUNT|g" \
      -i -e "s|{{ GPU_OPTION }}|$GPU_OPTION|g" nextflow.config
 
+# TODO inject rest of parameters passed in as CLI arguments for the workflow - see run_apptainer.sh
 # systems, but container info must either be added to it or the main.nf should have it
 echo "Generate template sbatch file - nextflow_sbatch.sh"
 sbatch_template > nextflow_sbatch.sh
  sed -i -e "s|{{ PARTITION }}|$WORKFLOW_PARTITION|g" \
-     -i -e "s|{{ ACCOUNT }}|$WORKFLOW_ACCOUNT_NAME|g" \
-     -i -e "s|{{ SLURM_PROFILE }}|$PROFILE|g" nextflow_sbatch.sh
+     -i -e "s|{{ ACCOUNT }}|$WORKFLOW_ACCOUNT|g" \
+     -i -e "s|{{ SLURM_PROFILE }}|$PROFILE|g" \
+     -i -e "s|{{ IMAGE_CLI }}|$IMAGE_CLI|g" nextflow_sbatch.sh
 
 chmod +x nextflow_sbatch.sh
 sbatch nextflow_sbatch.sh
