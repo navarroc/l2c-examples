@@ -89,6 +89,11 @@ done
 shift $((OPTIND - 1))
 IMAGE_CLI="$@"
 
+# If we read it into an array - this fixes the local run, but breaks
+# the sbatch run when inserting into the template - leaving this for later
+# Without this, we need to use eval to run on the login node, which is not ideal
+# IMAGE_CLI=("$@")
+
 echo "These are the arguments we'll pass to the workflow steps"
 echo $IMAGE_CLI
 
@@ -172,14 +177,17 @@ if [ "$USE_SLURM" == "YES" ]; then
 
     chmod +x run_job.sh
     echo "Run Snakemake on a compute node"
-    #sbatch run_job.sh
+    sbatch run_job.sh
     # TODO we should add a flag to not clean up the sbatch script in case it's needed for debugging
 else
     echo "Run Snakemake on the login node"
     # This line might need to be tailored to your container depending how you built it
     # Right now it will only launch 1 job in parallel at a time
-    # TODO the singularity args could be made configurable
-    snakemake --profile "$PROFILE" --jobs 1 $IMAGE_CLI
+    # TODO it would be better to replace eval here - the below works, but if we use an array
+    # for the CLI arguments, I couldn't get the run_job.sh updated correctly - leaving this
+    # to investigate later
+    # snakemake --profile "$PROFILE" --jobs 1 "${IMAGE_CLI[@]}"
+    eval snakemake --profile "$PROFILE" --jobs 1 $IMAGE_CLI
 fi
 
 if [ "$CLEANUP" == "YES" ]; then
