@@ -158,7 +158,7 @@ echo "Creating Snakemake config"
 # Check if using GPUS
 GPU_OPTION=""
 if [[ $NUM_GPUS -gt 0 ]]; then
-  GPU_OPTION="slurm_extra: \"--gres=gpu:${NUM_GPUS}\""
+  GPU_OPTION="gpu: ${NUM_GPUS}"
 fi
 
 PROFILE=config.yaml

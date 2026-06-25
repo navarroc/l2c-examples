@@ -9,3 +9,4 @@ default-resources:
   cpus_per_task: 1
   slurm_account: "bccu-dtai-gh"
   nodes: 1
+  gpu: 1
