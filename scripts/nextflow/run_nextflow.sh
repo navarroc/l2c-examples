@@ -39,7 +39,8 @@ profiles {
         docker.enabled = true
         singularity.enabled = false
         process {
-            container = 'hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64'
+            //container = 'hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64'
+            containerOptions = '--entrypoint ""'
             executor = 'local'
         }
     }
@@ -52,7 +53,8 @@ profiles {
         singularity.enabled = true
         process {
             executor = 'slurm'
-            container = 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64'
+            //container = 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64'
+            containerOptions = '--workdir /app'
             clusterOptions = '--account={{ ACCOUNT }} --nodes=1 {{ GPU_OPTION }}'
             queue = '{{ PARTITION }}'
 
@@ -87,7 +89,8 @@ profiles {
         singularity.enabled = true
         process {
             executor = 'slurm'
-            container = 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64'
+            //container = 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64'
+            containerOptions = '--workdir /app'
             clusterOptions = '--account={{ ACCOUNT }} --nodes=1 {{ GPU_OPTION }}'
             queue          = '{{ PARTITION }}'          // gpu, cpu, gpuA100x4, gpuA40x4
 
@@ -122,7 +125,8 @@ profiles {
         singularity.enabled = true
         process {
             executor = 'slurm'
-            container = 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:arm64'
+            //container = 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:arm64'
+            containerOptions = '--workdir /app'
             clusterOptions = '--account= {{ ACCOUNT }} --nodes=1 {{ GPU_OPTION }}'
             queue = '{{ PARTITION }}' // ghx4
 
