@@ -1,4 +1,7 @@
-rule run_container:
+rule all:
+    input:
+        "output/stdout.txt"
+rule run_model:
     output:
         "output/stdout.txt"
     container:

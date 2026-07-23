@@ -1,9 +1,7 @@
 process RUN_CONTAINER_ONE {
     container 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64'
-    containerOptions '--workdir /app'
-    cpus 1
-    memory '4 GB'
-    time '5m'
+    //containerOptions '--workdir /app'
+    label 'tiny'
 
     script:
     """
@@ -14,10 +12,8 @@ process RUN_CONTAINER_ONE {
 
 process RUN_CONTAINER_TWO {
     container 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-5:amd64'
-    containerOptions '--workdir /app'
-    cpus 1
-    memory '4 GB'
-    time '5m'
+    //containerOptions '--workdir /app'
+    label 'tiny'
 
     input:
     tuple val(use_default), path(user_image)
@@ -53,4 +49,3 @@ workflow {
     }
     RUN_CONTAINER_TWO(image_ch)
 }
-

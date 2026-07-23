@@ -1,0 +1,26 @@
+// Use this main.nf for the tutorial - it shows how you can minimally change main.nf to run locally or with SLURM
+process RUN_CONTAINER {
+    containerOptions '--workdir /app'
+
+    label 'tiny'
+
+    // Uncomment this for systems that use singularity
+    //container 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64'
+    container 'hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64'
+
+    script:
+    """
+    cd /app
+    ./run_tool.sh
+    """
+}
+
+workflow {
+    // Debugging statements
+    println("*****************************************************")
+    println "launchDir: ${launchDir}"
+    println "projectDir: ${projectDir}"
+    println "workDir: ${workDir}"
+    println("*****************************************************")
+    RUN_CONTAINER()
+}
