@@ -3,7 +3,7 @@ rule run_container:
     output:
         "output/stdout.txt"
     container: 
-        "docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64"
+        "docker://ghcr.io/navarroc/l2c-example-1:amd64"
     shell:
         """
         ./run_tool.sh > {output}

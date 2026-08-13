@@ -7,7 +7,7 @@ rule run_model:
     output:
         "output/stdout1.txt"
     container:
-        "docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-5:amd64"
+        "docker://ghcr.io/navarroc/l2c-example-5:amd64"
     resources:
         slurm_account="bhna-delta-gpu",
         slurm_partition="gpuA100x4",
@@ -26,7 +26,7 @@ rule run_container:
     output:
         "output/stdout2.txt"
     container:
-        "docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:amd64"
+        "docker://ghcr.io/navarroc/l2c-example-1:amd64"
     shell:
         """
         ./run_tool.sh > {output}

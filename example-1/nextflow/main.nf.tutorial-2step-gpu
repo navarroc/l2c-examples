@@ -15,6 +15,10 @@ process RUN_CONTAINER_TWO {
     //containerOptions '--workdir /app'
     label 'tiny'
 
+    // Use this to override resources
+    clusterOptions '--account=bhna-delta-gpu --nodes=1 --gpus=1'
+    queue 'gpuA100x4'
+
     input:
     tuple val(use_default), path(user_image)
 
