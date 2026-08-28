@@ -124,7 +124,7 @@ hostname="${HOSTNAME%%.*}"
 
 if [[ "$hostname" == dt-login* ]]; then
     echo "Running on Delta"
-    PYTHON="cray-python/3.11.7"
+    PYTHON="cray-python/3.12.12"
 #    PROFILE="profiles/delta"
 elif [[ "$hostname" == gh-login* ]]; then
     echo "Running on Delta AI"
@@ -194,3 +194,4 @@ if [ "$CLEANUP" == "YES" ]; then
   echo "Cleaning up temporary files"
   rm run_job.sh
 fi
+
