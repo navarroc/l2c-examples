@@ -5,8 +5,8 @@ process RUN_CONTAINER {
     label 'tiny'
 
     // Uncomment this for systems that use singularity
-    //container 'docker://ghrc.io/navarroc/l2c-example-1:amd64'
-    container 'ghrc.io/navarroc/l2c-example-1:amd64'
+    //container 'docker://ghcr.io/navarroc/l2c-example-1:amd64'
+    container 'ghcr.io/navarroc/l2c-example-1:amd64'
 
     script:
     """
