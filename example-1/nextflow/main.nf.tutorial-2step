@@ -1,3 +1,6 @@
+params.input = null
+params.output_name = "output-normal2.jpg"
+
 process RUN_CONTAINER_ONE {
     container 'docker://ghcr.io/navarroc/l2c-example-1:amd64'
     //containerOptions '--workdir /app'
