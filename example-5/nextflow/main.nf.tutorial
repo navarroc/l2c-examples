@@ -2,7 +2,10 @@ params.input = null
 params.output_name = "output-normal2.jpg"
 
 process RUN_CONTAINER {
-    container 'docker://ghrc.io/navarroc/l2c-example-5:amd64'
+    // Uncomment this for systems that use singularity
+    container 'docker://ghcr.io/navarroc/l2c-example-5:amd64'
+    // Uncomment this for systems that use docker
+    //container 'ghcr.io/navarroc/l2c-example-5:amd64'
     label 'tiny'
 
     input:
