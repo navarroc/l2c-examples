@@ -15,7 +15,7 @@ cat <<'EOF'
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
 #SBATCH --time=00:05:00  # Adjust based on expected workflow duration
-
+{{ GPU_OPTION }}
 PROFILE={{ SLURM_PROFILE }}
 
 ~/nextflow/nextflow run main.nf -resume -profile "$PROFILE" {{ IMAGE_CLI }}
@@ -127,7 +127,7 @@ profiles {
             executor = 'slurm'
             //container = 'docker://hub.ncsa.illinois.edu/farmdoc/l2c-example-1:arm64'
             containerOptions = '--workdir /app'
-            clusterOptions = '--account= {{ ACCOUNT }} --nodes=1 {{ GPU_OPTION }}'
+            clusterOptions = '--account={{ ACCOUNT }} --nodes=1 {{ GPU_OPTION }}'
             queue = '{{ PARTITION }}' // ghx4
 
             // Resource labels — use `label` in your processes
@@ -249,7 +249,10 @@ if [[ "$hostname" == dt-login* ]]; then
 elif [[ "$hostname" == gh-login* ]]; then
     echo "Running on Delta AI"
 #    JAVA_MODULE=""
-    PROFILE="slurm_delta-ai"
+    CONDA_MODULE="python/anaconda3/2.12.0"
+    PROFILE="slurm_delta_ai"
+    # Load Conda so we can create an environment with Java 17 to use with Nextflow
+    module load $CONDA_MODULE
 elif [[ "$hostname" == cc-login* ]]; then
     echo "Running on campus cluster"
     #JAVA_MODULE="java/23"
@@ -261,9 +264,21 @@ fi
 
 # Check if Nextflow is already installed
 if [[ -d ~/nextflow ]]; then
-    echo "Nextflow is installed - nothing to do"
+    echo "Nextflow is installed - check if this is Delta AI and activate environment with Java 17 if it is."
+    if [[ "$hostname" == gh-login* ]]; then
+        conda activate ~/nextflow-env
+    fi
 else
     echo "Nextflow is not installed, installing it in $HOME/nextflow"
+
+    # For Delta AI - we need to create a conda environment and install Java 17 for Nextflow
+    if [[ "$hostname" == gh-login* ]]; then
+        # First - we have to install Java into a conda environment
+        CONDA_PKGS_DIRS=~/.conda/pkgs mamba create -p ~/nextflow-env -c conda-forge openjdk=17
+        conda activate ~/nextflow-env
+        java --version
+    fi
+
     mkdir ~/nextflow
     wget -qO- https://get.nextflow.io | bash
     chmod +x nextflow
@@ -274,8 +289,14 @@ echo "Creating nextflow config"
 
 # Check if using GPUS
 GPU_OPTION=""
+WORKFLOW_GPU_OPTION=""
 if [[ $NUM_GPUS -gt 0 ]]; then
   GPU_OPTION="--gpus=${NUM_GPUS}"
+
+  # If Running on Delta AI - we need to add the GPU line to the batch script
+  if [[ "$hostname" == gh-login* ]]; then
+      WORKFLOW_GPU_OPTION="#SBATCH --gpus=1"
+  fi
 fi
 config_template > nextflow.config
 sed  -i -e "s|{{ PARTITION }}|$JOB_PARTITION|g" \
@@ -283,17 +304,22 @@ sed  -i -e "s|{{ PARTITION }}|$JOB_PARTITION|g" \
      -i -e "s|{{ GPU_OPTION }}|$GPU_OPTION|g" nextflow.config
 
 # TODO inject rest of parameters passed in as CLI arguments for the workflow - see run_apptainer.sh
-# systems, but container info must either be added to it or the main.nf should have it
-echo "Generate template sbatch file - nextflow_sbatch.sh"
-sbatch_template > nextflow_sbatch.sh
- sed -i -e "s|{{ PARTITION }}|$WORKFLOW_PARTITION|g" \
-     -i -e "s|{{ ACCOUNT }}|$WORKFLOW_ACCOUNT|g" \
-     -i -e "s|{{ SLURM_PROFILE }}|$PROFILE|g" \
-     -i -e "s|{{ IMAGE_CLI }}|$IMAGE_CLI|g" nextflow_sbatch.sh
+if [ "$USE_SLURM" == "YES" ]; then
+    echo "Generate template sbatch file - nextflow_sbatch.sh"
+    sbatch_template > nextflow_sbatch.sh
+    sed -i -e "s|{{ PARTITION }}|$WORKFLOW_PARTITION|g" \
+        -i -e "s|{{ ACCOUNT }}|$WORKFLOW_ACCOUNT|g" \
+        -i -e "s|{{ SLURM_PROFILE }}|$PROFILE|g" \
+        -i -e "s|{{ IMAGE_CLI }}|$IMAGE_CLI|g" \
+        -i -e "s|{{ GPU_OPTION }}|$WORKFLOW_GPU_OPTION|g" nextflow_sbatch.sh
 
-chmod +x nextflow_sbatch.sh
-sbatch nextflow_sbatch.sh
-
+    chmod +x nextflow_sbatch.sh
+    echo "Run Nextflow on a compute node"
+    sbatch nextflow_sbatch.sh
+else
+    echo "Run Nextflow on the login node"
+    ~/nextflow/nextflow run main.nf -resume -profile "$PROFILE" $IMAGE_CLI
+fi
 # Remove run script if user specifies to clean it up - default is to not remove it
 if [ "$CLEANUP" == "YES" ]; then
   echo "Cleaning up temporary files"
