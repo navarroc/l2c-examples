@@ -74,6 +74,11 @@ profiles {
                 memory = 16.GB
                 time   = 1.h
             }
+            withLabel: 'medium_short' {
+                cpus   = 8
+                memory = 16.GB
+                time   = 10.m
+            }
             withLabel: 'large' {
                 cpus   =  8
                 memory = 32.GB
@@ -109,6 +114,11 @@ profiles {
                 cpus   =  4
                 memory = 16.GB
                 time   = 1.h
+            }
+            withLabel: 'medium_short' {
+                cpus   = 8
+                memory = 16.GB
+                time   = 10.m
             }
             withLabel: 'large' {
                 cpus   =  8
