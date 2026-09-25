@@ -1,0 +1,52 @@
+params.input = null
+params.buildings = "62fea288f5438e1f8c515ef8" // Default Building Dataset ID
+params.result_name = "slc_dmg"
+//params.hazard_type = "earthquake"
+params.num_cpu = 8
+
+process RUN_CONTAINER {
+    // Uncomment this for systems that use singularity
+    container 'docker://ghcr.io/navarroc/dw-pyincore:amd64'
+    containerOptions '--home $PWD'
+    // Uncomment this for systems that use docker
+    //container 'ghcr.io/navarroc/dw-pyincore:amd64'
+    label 'medium_short'
+
+    input:
+    tuple val(use_default), path(user_token)
+    val buildings
+    val result_name
+    val num_cpu
+
+    script:
+    def token = use_default ? "/app/incore_token" : "\$orig_dir/${user_token}"
+    """
+    orig_dir=\$PWD
+    echo "Using token: ${token}"
+    echo "Num CPU: ${num_cpu}"
+    cd /app && ./run_tool.sh --analysis pyincore.analyses.buildingstructuraldamage.buildingstructuraldamage:BuildingStructuralDamage --token "${token}" --result_name "\$orig_dir/${result_name}" --buildings ${buildings} --hazard_type earthquake --hazard_id 64108b5f86a52d419dd69a3f --dfr3_mapping_set 6309005ad76c6d0e1f6be081 --num_cpu ${num_cpu}
+    """
+}
+
+workflow {
+    println("*****************************************************")
+    println "launchDir: ${launchDir}"
+    println "projectDir: ${projectDir}"
+    println "workDir: ${workDir}"
+    println("*****************************************************")
+
+    if (params.input) {
+        // Stage the file into the work directory, flag as not default
+        token_ch = Channel.fromPath(params.input, checkIfExists: true)
+                          .map { file -> tuple(false, file) }
+    } else {
+        // No file to stage; pass a dummy path and flag as default
+        token_ch = Channel.value(tuple(true, file("NO_FILE")))
+    }
+
+    buildings_ch = Channel.value(params.buildings)
+    result_name_ch = Channel.value(params.result_name)
+    num_cpu_ch = Channel.value(params.num_cpu)
+
+    RUN_CONTAINER(token_ch, buildings_ch, result_name_ch, num_cpu_ch)
+}
