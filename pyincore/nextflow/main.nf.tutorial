@@ -1,7 +1,9 @@
 params.input = null
 params.buildings = "62fea288f5438e1f8c515ef8" // Default Building Dataset ID
 params.result_name = "slc_dmg"
-//params.hazard_type = "earthquake"
+params.hazard_type = "earthquake"
+params.hazard_id = "64108b5f86a52d419dd69a3f"
+params.dfr3_mapping_set = "6309005ad76c6d0e1f6be081"
 params.num_cpu = 8
 
 process RUN_CONTAINER {
@@ -16,6 +18,9 @@ process RUN_CONTAINER {
     tuple val(use_default), path(user_token)
     val buildings
     val result_name
+    val hazard_type
+    val hazard_id
+    val dfr3_mapping_set
     val num_cpu
 
     script:
@@ -23,8 +28,7 @@ process RUN_CONTAINER {
     """
     orig_dir=\$PWD
     echo "Using token: ${token}"
-    echo "Num CPU: ${num_cpu}"
-    cd /app && ./run_tool.sh --analysis pyincore.analyses.buildingstructuraldamage.buildingstructuraldamage:BuildingStructuralDamage --token "${token}" --result_name "\$orig_dir/${result_name}" --buildings ${buildings} --hazard_type earthquake --hazard_id 64108b5f86a52d419dd69a3f --dfr3_mapping_set 6309005ad76c6d0e1f6be081 --num_cpu ${num_cpu}
+    cd /app && ./run_tool.sh --analysis pyincore.analyses.buildingstructuraldamage.buildingstructuraldamage:BuildingStructuralDamage --token "${token}" --result_name "\$orig_dir/${result_name}" --buildings ${buildings} --hazard_type earthquake --hazard_id ${hazard_id} --dfr3_mapping_set ${dfr3_mapping_set} --num_cpu ${num_cpu}
     """
 }
 
@@ -46,7 +50,11 @@ workflow {
 
     buildings_ch = Channel.value(params.buildings)
     result_name_ch = Channel.value(params.result_name)
+    hazard_type_ch = Channel.value(params.hazard_type)
+    hazard_id_ch = Channel.value(params.hazard_id)
+    dfr3_mapping_set_ch = Channel.value(params.dfr3_mapping_set)
     num_cpu_ch = Channel.value(params.num_cpu)
 
-    RUN_CONTAINER(token_ch, buildings_ch, result_name_ch, num_cpu_ch)
+    RUN_CONTAINER(token_ch, buildings_ch, result_name_ch, hazard_type_ch, hazard_id_ch, dfr3_mapping_set_ch, num_cpu_ch)
 }
+
