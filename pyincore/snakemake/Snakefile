@@ -1,0 +1,20 @@
+# Handles if the user passes a relative path to the token
+incore_token = os.path.abspath(config.get("incore_token", "incore_app_token"))
+
+rule all:
+    input:
+        "output/stdout.txt"
+rule run_model:
+    input:
+        token=incore_token
+    output:
+        "output/stdout.txt"
+    container:
+        "docker://ghcr.io/navarroc/dw-pyincore:amd64"
+    params:
+        result_name = config.get("result_name", "slc_dmg"),
+        tool_args=config.get("tool_args", "--analysis pyincore.analyses.buildingstructuraldamage.buildingstructuraldamage:BuildingStructuralDamage --buildings 62fea288f5438e1f8c515ef8 --hazard_type earthquake --hazard_id 64108b5f86a52d419dd69a3f --dfr3_mapping_set 6309005ad76c6d0e1f6be081 --num_cpu 8")
+    shell:
+        """
+        ./run_tool.sh {params.tool_args} --token {input.token} --result_name output/{params.result_name} > {output}
+        """
