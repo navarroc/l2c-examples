@@ -9,6 +9,9 @@ rule run_model:
         token=incore_token
     output:
         "output/stdout.txt"
+    resources:
+        mem_mb=12000,
+        cpus_per_task=8
     container:
         "docker://ghcr.io/navarroc/dw-pyincore:amd64"
     params:
