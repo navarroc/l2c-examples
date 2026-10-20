@@ -27,7 +27,6 @@ process RUN_CONTAINER {
     def token = use_default ? "/app/incore_token" : "\$orig_dir/${user_token}"
     """
     orig_dir=\$PWD
-    echo "Using token: ${token}"
     cd /app && ./run_tool.sh --analysis pyincore.analyses.buildingstructuraldamage.buildingstructuraldamage:BuildingStructuralDamage --token "${token}" --result_name "\$orig_dir/${result_name}" --buildings ${buildings} --hazard_type earthquake --hazard_id ${hazard_id} --dfr3_mapping_set ${dfr3_mapping_set} --num_cpu ${num_cpu}
     """
 }

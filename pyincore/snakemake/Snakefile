@@ -20,9 +20,8 @@ rule run_model:
         hazard_type = config.get("hazard_type", "earthquake"),
         hazard_id = config.get("hazard_id", "64108b5f86a52d419dd69a3f"),
         dfr3_mapping_set = config.get("dfr3_mapping_set", "6309005ad76c6d0e1f6be081"),
-        num_cpu = config.get("num_cpu", "8"),
-        analysis = "pyincore.analyses.buildingstructuraldamage.buildingstructuraldamage:BuildingStructuralDamage"
+        num_cpu = config.get("num_cpu", "8")
     shell:
         """
-        ./run_tool.sh --analysis {params.analysis} --token {input.token} --buildings {params.buildings} --hazard_type {params.hazard_type} --hazard_id {params.hazard_id} --dfr3_mapping_set {params.dfr3_mapping_set} --num_cpu {params.num_cpu} --result_name output/{params.result_name} > {output}
+        ./run_tool.sh --analysis pyincore.analyses.buildingstructuraldamage.buildingstructuraldamage:BuildingStructuralDamage --token {input.token} --buildings {params.buildings} --hazard_type {params.hazard_type} --hazard_id {params.hazard_id} --dfr3_mapping_set {params.dfr3_mapping_set} --num_cpu {params.num_cpu} --result_name output/{params.result_name} > {output}
         """
