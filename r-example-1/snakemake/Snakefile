@@ -1,0 +1,13 @@
+# Snakefile
+rule run_container:
+    output:
+        "output/stdout.txt"
+    container:
+        "docker://ghcr.io/navarroc/r-example-1:amd64"
+    params:
+        input1 = config.get("input1", ""),
+        input2 = config.get("input2", "")
+    shell:
+        """
+        ./run_tool.sh {params.input1} {params.input2}> {output}
+        """

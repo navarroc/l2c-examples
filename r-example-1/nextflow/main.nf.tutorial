@@ -1,0 +1,39 @@
+// Use this main.nf for the tutorial - it shows how you can minimally change main.nf to run locally or with SLURM
+params.input1 = ""
+params.input2 = ""
+
+process RUN_CONTAINER {
+    //containerOptions '--workdir /app'
+
+    label 'tiny'
+
+    // Uncomment this for systems that use singularity
+    container 'docker://ghcr.io/navarroc/r-example-1:amd64'
+    // Uncomment this for systems that us docker
+    //container 'ghcr.io/navarroc/r-example-1:amd64'
+
+    input:
+    val input1
+    val input2
+
+    script:
+    """
+    cd /app
+    ./run_tool.sh ${input1} ${input2}
+    """
+}
+
+workflow {
+    // Debugging statements
+    println("*****************************************************")
+    println "launchDir: ${launchDir}"
+    println "projectDir: ${projectDir}"
+    println "workDir: ${workDir}"
+    println("*****************************************************")
+
+    // Inputs
+    input1_ch = Channel.value(params.input1)
+    input2_ch = Channel.value(params.input2)
+
+    RUN_CONTAINER(input1_ch, input2_ch)
+}
